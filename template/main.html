@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>Greeting Message</title>
+
+	<script src="generate_pinout.js"></script>
+</head>
+<script>
+	function call_js() {
+		var colors=['red','yellow','brown'];
+		var text=['5V','SIG','GND'];
+		var n=3;
+		do_pinout(colors,text,n,1,false);
+		table_generate(colors,text);
+	}
+
+	
+</script>
+<body  onload="call_js()">
+
+	<style>
+		
+		table {
+			border-collapse: collapse;
+		   
+		}
+	
+		th, td {
+			padding: 8px;
+			text-align: left;
+			border-bottom: 1px solid #ddd;
+		}
+	
+		th {
+			background-color: #f2f2f2;
+		}
+	</style>
+
+		<div>
+	
+			<div class="box">
+	
+			</div>
+	
+			<svg id="my-svg" width="500" height="100"></svg>
+			<table>
+				<thead>
+					<tr>
+						<th>Pin Number</th>
+						<th>Pin Text</th>
+						<th>Pin Color</th>
+						<th>Pin color </th>
+					</tr>
+				</thead>
+				<tbody id="pin-table-body"></tbody>
+			</table>
+		</div>
+		`
+</body>
+</html>
