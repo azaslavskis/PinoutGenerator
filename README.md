@@ -1,7 +1,12 @@
 # PinoutGenerator
 This both web or desktop version allow you generate pinout for your connectors
 
-# Usage web just visit : 
+# Usage web just visit : https://alex5250.github.io/PinoutGenerator/
+![image](https://user-images.githubusercontent.com/20460747/230366631-c7f33277-0685-4fa7-bb8e-af3bb6b472ac.png)
+
+# app
+
+
 
 
 # local , just clone file for your os and use it
