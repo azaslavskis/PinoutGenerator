@@ -86,6 +86,7 @@ function table_generate(colors,text) {
 
 		// Get the table body element
 		var tableBody = document.getElementById("pin-table-body");
+	       tableBody.innerHTML = "";
 
 		// Loop through each pin and generate a table row
 		for (var i = 0; i < pinTexts.length; i++) {
