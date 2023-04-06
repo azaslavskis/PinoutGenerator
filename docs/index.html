@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>PinOut</title>
+
+	<script src="functions.js"></script>
+  <script src="table.js"></script>
+  <script src="save.js"></script>
+  <script src="html2canvas.min.js"></script>
+
+  <link rel="stylesheet" href="styles.css">
+
+</head>
+
+
+<script>
+
+
+
+function generate_all() {
+    var data=generateList();
+    var colors=data['colors'];
+    var texts=data['texts'];
+    var n=parseInt(data['n'])-1;
+    console.log(n);
+
+
+
+    do_pinout(colors,texts,n,1,false);
+    table_generate(colors,texts);
+  }
+  
+</script>
+
+<body >
+
+
+<div class="container">
+<div class="exportable" id="exportable">
+
+	
+
+<table>
+	<thead>
+		<tr>
+			<th>Pin Number</th>
+			<th>Pin Text</th>
+			<th>Pin Color</th>
+			<th>Pin color </th>
+		</tr>
+	</thead>
+	<tbody id="pin-table-body"></tbody>
+</table>
+<svg id="my-svg" width="500" height="100"></svg>
+</div>
+
+<div class="user" id="user">
+			
+<div> 
+  <div>
+  <table id="myTable">
+    <thead>
+      <tr>
+        <th>Index</th>
+        <th>Color Name</th>
+        <th>Pin Name</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  <div class="buttons">
+  <button onclick="addRow()">Add Row</button>
+  <button onclick="generate_all()"> Generate List</button>
+  <button onclick="save()"> Save pic</button>
+  </div>
+</div>
+</div>
+
+<p>By alex5250</p>
+</body>
+</html>
