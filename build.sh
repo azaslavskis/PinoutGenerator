@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Set the path to the docs lib directory
-DOCS_LIB_PATH=./docs
+DOCS_LIB_PATH=./web-app
 
 # Set the path to the output directory
 OUTPUT_PATH=./app/web
@@ -18,11 +18,11 @@ find $DOCS_LIB_PATH -name '*.js'  | while read file; do
     echo "$minified" > "$OUTPUT_PATH/$filename"
 done
 
-cp ./docs/index.html ./app/web/index.html
+cp ./web-app/index.html ./app/web/index.html
 
 
 # Set the path to the CSS directory
-CSS_DIR=./docs
+CSS_DIR=./web-app
 # Set the output directory for the minified files
 OUTPUT_DIR=./app/web
 
@@ -41,7 +41,4 @@ cd app
 
 cargo build --release 
 
-cross build x86_64-pc-windows-gnu --release
-cross build x86_64-unknown-dragonfly --release
-
-
+cargo build --target x86_64-pc-windows-gnu --release
