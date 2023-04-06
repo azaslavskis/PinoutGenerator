@@ -42,6 +42,6 @@ cd app
 cargo build --release 
 
 cross build x86_64-pc-windows-gnu --release
-
+cross build x86_64-unknown-dragonfly --release
 
 
