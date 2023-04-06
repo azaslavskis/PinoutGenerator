@@ -12,6 +12,10 @@ function do_pinout(colors,text,n,x,is_black) {
     // Loop through each square and circle
     for (var i = 0; i < n; i++) {
         for (var j = 0; j < x; j++) {
+
+       
+
+            if(i > 0) {
             // Create a square
             var square = document.createElementNS("http://www.w3.org/2000/svg", "rect");
             square.setAttribute("x", startX + i * (size ));
@@ -27,6 +31,20 @@ function do_pinout(colors,text,n,x,is_black) {
             circle.setAttribute("cy", startY + j * (size ) + size / 2);
             circle.setAttribute("r", size / 2 - 2);
             circle.setAttribute("fill", colors[(i + j) % colors.length]);
+
+            
+        }
+
+        if(i==0){
+            var square = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+            square.setAttribute("x", startX + i * (size ));
+            square.setAttribute("y", startY + j * (size ));
+            square.setAttribute("width", size);
+            square.setAttribute("height", size);
+            square.setAttribute("stroke", "black");
+            square.setAttribute("fill", colors[i+j]);
+          
+        }
             
             var letter = document.createElementNS("http://www.w3.org/2000/svg", "text");
             // Create a text element with a letter from the array
@@ -35,6 +53,7 @@ function do_pinout(colors,text,n,x,is_black) {
             letter.setAttribute("y", startY + j * (size ) + size / 2);
             letter.setAttribute("text-anchor", "middle");
             letter.setAttribute("alignment-baseline", "central");
+
         
 
            
@@ -52,10 +71,19 @@ function do_pinout(colors,text,n,x,is_black) {
         number.setAttribute("fill", "black");
         number.setAttribute("font-size", "24");
         number.textContent = (j * n + i + 1).toString();
+
+        if( i > 0){
             svg.appendChild(square);
             svg.appendChild(circle);
             svg.appendChild(letter);
-            svg.appendChild(number)
+            svg.appendChild(number);
+        }
+        else {
+            svg.appendChild(square);
+            svg.appendChild(letter);
+            svg.appendChild(number);
+        }
+          
         }
     }
 }
