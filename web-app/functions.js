@@ -54,10 +54,6 @@ function do_pinout(colors,text,n,x,is_black) {
             letter.setAttribute("text-anchor", "middle");
             letter.setAttribute("alignment-baseline", "central");
 
-        
-
-           
-
             letter.textContent = text[(i + j) % text.length];
             var color_now=colors[(i + j) % colors.length];
             console.log(invertColor(color_now,is_black));
