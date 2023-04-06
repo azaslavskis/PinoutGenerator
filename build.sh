@@ -39,7 +39,9 @@ for file in $CSS_DIR/*.css; do
 done
 cd app
 
-cargo build --release   
+cargo build --release 
+
+cross build x86_64-pc-windows-gnu --release
 
 
 
