@@ -1,3 +1,21 @@
+function on_load() {
+    const mySwitch = document.getElementById("mySwitch");
+
+    mySwitch.addEventListener("change", () => {
+        
+      if (mySwitch.checked) {
+        // do something when the switch is turned on
+        window.allow_updated=!window.allow_updated;
+        alert("New beta features: "+window.allow_updated);
+      } else {
+        // do something when the switch is turned off
+        alert("New beta features: "+window.allow_updated);
+      }
+    });
+}
+
+
+
 function do_pinout(colors,text,n,x,is_black) {
     // Get the SVG element
     var svg = document.getElementById("my-svg");
@@ -8,6 +26,11 @@ function do_pinout(colors,text,n,x,is_black) {
     var totalSize = (size + padding) * n;
     var startX = 0;
     var startY = 30;
+    var allow_updated=window.allow_updated;
+
+   
+  
+
 
     // Loop through each square and circle
     for (var i = 0; i < n; i++) {
@@ -53,8 +76,21 @@ function do_pinout(colors,text,n,x,is_black) {
             letter.setAttribute("y", startY + j * (size ) + size / 2);
             letter.setAttribute("text-anchor", "middle");
             letter.setAttribute("alignment-baseline", "central");
+            var string_out_put = "";
+          
+            if(text[(i + j) % text.length].length > 5 && allow_updated==true){
+             
+                let splitted_text=text[(i + j) % text.length].split(" ");
+                splitted_text.forEach(element => {
+                string_out_put=string_out_put+element[0].toUpperCase();
+                });
+                letter.textContent = string_out_put;
 
-            letter.textContent = text[(i + j) % text.length];
+            }
+
+            else {
+                letter.textContent = text[(i + j) % text.length];
+            }
             var color_now=colors[(i + j) % colors.length];
             console.log(invertColor(color_now,is_black));
             letter.setAttribute("fill", invertColor(color_now,is_black));
