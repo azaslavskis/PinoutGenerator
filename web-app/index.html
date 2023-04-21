@@ -24,16 +24,13 @@ function generate_all() {
     var texts=data['texts'];
     var n=parseInt(data['n'])-1;
     console.log(n);
-
-
-
     do_pinout(colors,texts,n,1,false);
     table_generate(colors,texts);
   }
   
 </script>
 
-<body >
+<body onload="on_load()">
 
 
 <div class="container">
@@ -78,6 +75,14 @@ function generate_all() {
 </div>
 
 <p>By alex5250 from Latvia with love</p>
+
+
+<p> Turn on beta features</p>
+<label class="switch">
+  <input type="checkbox" id="mySwitch">
+  <span class="slider round"></span>
+</label>
+
 
 </body>
 </html>
