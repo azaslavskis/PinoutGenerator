@@ -102,7 +102,7 @@ function do_pinout(colors,text,n,x,is_black) {
         number.setAttribute("alignment-baseline", "central");
         number.setAttribute("fill", "black");
         number.setAttribute("font-size", "24");
-        number.textContent = (j * n + i + 1).toString();
+        number.textContent = (j * n + i ).toString();
 
         if( i > 0){
             svg.appendChild(square);
@@ -155,7 +155,7 @@ function table_generate(colors,text) {
 
 			// Create a new cell element for the pin number
 			var pinNumberCell = document.createElement("td");
-			pinNumberCell.textContent = (i + 1).toString();
+			pinNumberCell.textContent = (i).toString();
 			row.appendChild(pinNumberCell);
 
 			// Create a new cell element for the pin text
