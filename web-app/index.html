@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PinOut Generator</title>
+    <title>Pinout Generator</title>
 
     <!-- Styles -->
     <link id="theme-stylesheet" rel="stylesheet" href="styles.css">
@@ -14,18 +14,38 @@
 </head>
 <body onload="on_load()">
 
+    <h1>Pinout Generator</h1>
+
     <div class="container">
-        <!-- Exportable Section -->
-        <div class="exportable" id="exportable">
+        <!-- SVG Pinout Section -->
+         
+        <div class="exportable" id="to_export">
+            <!-- Moved Table Above SVG -->
+            <h2>Pin Table</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Pin Number</th>
+                        <th>Pin Label</th>
+                        <th>Pin Color</th>
+                        <th>Preview</th>
+                    </tr>
+                </thead>
+                <tbody id="pin-table-body"></tbody>
+            </table>
+
+            <!-- Pinout Diagram (Now Below the Table) -->
+            <h2>Pinout Diagram</h2>
             <svg id="my-svg" width="800" height="200"></svg>
         </div>
 
-        <!-- User Input Section -->
+        <!-- User Input Table -->
         <div class="user" id="user">
+            <h2>Manage Pins</h2>
             <table id="myTable">
                 <thead>
                     <tr>
-                        <th>Index</th>
+                        <th>#</th>
                         <th>Color</th>
                         <th>Pin Label</th>
                         <th>Actions</th>
@@ -43,7 +63,7 @@
         </div>
     </div>
 
-    <p>By azaslavskis from Latvia with love</p>
+    <p>By azaslavskis from Latvia with love ❤️</p>
 
 </body>
 </html>

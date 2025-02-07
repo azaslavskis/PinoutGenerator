@@ -10,6 +10,7 @@ function generateAll() {
     console.log("[generateAll] Data received:", data);
 
     do_pinout(data.colors, data.texts, data.n, 1, false);
+    table_generate(data.colors, data.texts); // ✅ Ensure the table updates!
 }
 
 // Draw Pinout in SVG
@@ -47,6 +48,26 @@ function do_pinout(colors, text, n, x, is_black) {
     }
 }
 
+// Dynamically Generate Table
+function table_generate(colors, text) {
+    console.log("[table_generate] Updating table...");
+    let tableBody = document.getElementById("pin-table-body");
+    tableBody.innerHTML = ""; // ✅ Clear previous table entries
+
+    text.forEach((txt, i) => {
+        let row = document.createElement("tr");
+        row.innerHTML = `
+            <td>${i + 1}</td>
+            <td>${txt}</td>
+            <td>${colors[i]}</td>
+            <td style="background-color: ${colors[i]}"></td>
+        `;
+        tableBody.appendChild(row);
+    });
+
+    console.log("[table_generate] Table updated!");
+}
+
 // Determine Text Contrast for Readability
 function getContrastColor(bgColor) {
     let r = parseInt(bgColor.substr(1, 2), 16);
@@ -82,7 +103,7 @@ function addRow() {
     let row = document.createElement("tr");
 
     row.innerHTML = `
-        <td>${rowCount}</td>
+        <td>${rowCount + 1}</td>
         <td><input type="color"></td>
         <td><input type="text"></td>
         <td><button onclick="removeRow(this)">❌</button></td>
@@ -99,7 +120,7 @@ function removeRow(button) {
 // Save SVG as PNG
 function saveSVG() {
     console.log("[saveSVG] Capturing image...");
-    let svgElement = document.getElementById("exportable");
+    let svgElement = document.getElementById("to_export");
     html2canvas(svgElement).then(canvas => DownloadCanvasAsImage(canvas));
 }
 
