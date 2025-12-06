@@ -1,20 +1,37 @@
-# PinoutGenerator
-This both web or desktop version allow you generate pinout for your connectors
+PinoutGenerator
 
-# Usage web just visit : https://azaslavskis.github.io/PinoutGenerator/
-![image](https://user-images.githubusercontent.com/20460747/230366631-c7f33277-0685-4fa7-bb8e-af3bb6b472ac.png)
+A simple, clean, and flexible tool—available both on the web and as a desktop app—that helps you generate pinout diagrams for your connectors.
+Designed to save time, reduce errors, and create clear visuals for documentation or hardware projects.
 
-# app
+🌐 Web Version
 
-![image](https://user-images.githubusercontent.com/20460747/230366940-a703e337-7711-4407-807f-d441a038b6d7.png)
+No installation required — just open the link and start creating:
 
-# result
-
-![06_04_2023_12_44](https://user-images.githubusercontent.com/20460747/230367016-d7125a0b-1444-45be-ac4a-1ee674422274.png)
+👉 https://azaslavskis.github.io/PinoutGenerator/  
 
 
+<img width="1920" height="1032" alt="image" src="https://github.com/user-attachments/assets/969bb544-e8ff-431e-8eb1-098a91f46bb7" />
 
-# local , just clone file for your os and use it
 
-# something important
-I wanna talk about our world. In 24/02/2022 many of my friends, relatives and people matters a lot for me faced an war in Ukraine... The Russian army is killing people in Ukraine,destroy an cities an kill thousands of civils. Is time to help if we want so see modern world not like in 1984 novel. Is not time to discuss. Is a war is a pain and hell. https://saveua.in.ua/en And many others. Stay strong Ukraine yellow_heartblue_heart
+
+🧩 Example Output
+
+Here’s what a generated pinout diagram looks like:
+
+<img width="1095" height="662" alt="pinout_20251206_2056" src="https://github.com/user-attachments/assets/8af65eff-319b-4e88-bcb7-0f98370fedb7" />
+
+💾 Local Use
+
+Clone the repository for your operating system and run it locally — no extra setup required.
+
+💙💛 A Personal Note
+
+I want to speak honestly about something that matters deeply.
+On 24 February 2022, many of my friends, relatives, and countless innocent people faced the horror of war in Ukraine. Cities were destroyed, families were broken apart, and thousands of civilians were killed. This is not something distant — it affected people I know and care for.
+
+If you want to support humanitarian efforts, consider visiting:
+
+👉 https://saveua.in.ua/en
+
+There are many organizations helping those in need.
+Stay strong, Ukraine. 💙💛
