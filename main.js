@@ -1,22 +1,21 @@
-// main.js – modernized, cleaned-up logic
+// main.js
 
 document.addEventListener("DOMContentLoaded", () => {
   initTheme();
   initUI();
-  addRow(); // start with one empty pin row
+  addRow();
 });
 
 /* ------------------------------------------------------------------ */
-/* Theme handling                                                     */
+/* Theme                                                                */
 /* ------------------------------------------------------------------ */
 
 function initTheme() {
-  const body = document.body;
+  const body           = document.body;
   const toggleCheckbox = document.getElementById("theme-toggle-checkbox");
 
-  // Optional: restore theme from localStorage
-  const storedTheme = window.localStorage?.getItem("pinout-theme");
-  if (storedTheme === "dark") {
+  const stored = window.localStorage?.getItem("pinout-theme");
+  if (stored === "dark") {
     body.setAttribute("data-theme", "dark");
     toggleCheckbox.checked = true;
   } else {
@@ -26,237 +25,404 @@ function initTheme() {
   toggleCheckbox.addEventListener("change", () => {
     const isDark = toggleCheckbox.checked;
     body.setAttribute("data-theme", isDark ? "dark" : "light");
-    try {
-      window.localStorage?.setItem("pinout-theme", isDark ? "dark" : "light");
-    } catch {
-      /* ignore storage errors */
-    }
+    try { window.localStorage?.setItem("pinout-theme", isDark ? "dark" : "light"); }
+    catch { /* ignore */ }
   });
 }
 
 /* ------------------------------------------------------------------ */
-/* UI setup                                                           */
+/* UI setup                                                             */
 /* ------------------------------------------------------------------ */
 
 function initUI() {
-  document.getElementById("add-pin-btn").addEventListener("click", addRow);
+  document.getElementById("add-pin-btn").addEventListener("click", () => {
+    const raw   = Number(document.getElementById("add-count").value);
+    const count = Math.max(1, Math.min(100, Number.isFinite(raw) ? raw : 1));
+    for (let i = 0; i < count; i++) addRow();
+  });
+
   document.getElementById("generate-btn").addEventListener("click", generateAll);
-  document.getElementById("save-btn").addEventListener("click", savePNG);
+  document.getElementById("save-png-btn").addEventListener("click", savePNG);
+  document.getElementById("save-svg-btn").addEventListener("click", saveSVG);
+
+  // Live value display for range sliders
+  [
+    ["cfg-pin-w", "cfg-pin-w-val"],
+    ["cfg-pin-h", "cfg-pin-h-val"],
+    ["cfg-gap",   "cfg-gap-val"],
+  ].forEach(([inputId, spanId]) => {
+    const inp  = document.getElementById(inputId);
+    const span = document.getElementById(spanId);
+    inp.addEventListener("input", () => { span.textContent = inp.value; });
+  });
 }
 
 /* ------------------------------------------------------------------ */
-/* Pin data + rendering                                               */
+/* Config                                                               */
+/* ------------------------------------------------------------------ */
+
+function getConfig() {
+  return {
+    title:       document.getElementById("cfg-title").value.trim(),
+    layout:      document.getElementById("cfg-layout").value,       // "row" | "dip"
+    pinW:        Number(document.getElementById("cfg-pin-w").value),
+    pinH:        Number(document.getElementById("cfg-pin-h").value),
+    gap:         Number(document.getElementById("cfg-gap").value),
+    bodyColor:   document.getElementById("cfg-body-color").value,
+    showNumbers: document.getElementById("cfg-show-numbers").checked,
+  };
+}
+
+/* ------------------------------------------------------------------ */
+/* Pin data + rendering                                                 */
 /* ------------------------------------------------------------------ */
 
 function generateAll() {
   const { colors, texts, n } = collectPinData();
 
   if (n === 0) {
-    alert("Please add at least one pin with a color and label.");
+    showToast("Add at least one pin with a color and label.");
     return;
   }
 
-  renderPinDiagram(colors, texts);
+  const cfg = getConfig();
+  renderPinDiagram(colors, texts, cfg);
   renderPinTable(colors, texts);
+
+  document.getElementById("diagram-empty").hidden = true;
+  document.getElementById("my-svg").hidden = false;
 }
 
 function collectPinData() {
-  const tableBody = document
-    .getElementById("myTable")
-    .getElementsByTagName("tbody")[0];
-
-  const rows = Array.from(tableBody.rows);
+  const tbody  = document.getElementById("myTable").getElementsByTagName("tbody")[0];
   const colors = [];
-  const texts = [];
+  const texts  = [];
 
-  rows.forEach((row) => {
-    const colorInput = row.cells[1].querySelector("input[type='color']");
-    const labelInput = row.cells[2].querySelector("input[type='text']");
-
-    const color = (colorInput?.value || "").trim();
-    const label = (labelInput?.value || "").trim();
-
-    if (color && label) {
-      colors.push(color);
-      texts.push(label);
-    }
+  Array.from(tbody.rows).forEach((row) => {
+    const color = (row.cells[1].querySelector("input[type='color']")?.value || "").trim();
+    const label = (row.cells[2].querySelector("input[type='text']")?.value  || "").trim();
+    if (color && label) { colors.push(color); texts.push(label); }
   });
 
   return { colors, texts, n: colors.length };
 }
 
-function renderPinDiagram(colors, labels) {
+/* -- SVG helpers ---------------------------------------------------- */
+
+/** Create an SVG element with a set of attributes in one call. */
+function svgEl(tag, attrs = {}) {
+  const el = document.createElementNS("http://www.w3.org/2000/svg", tag);
+  for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, String(v));
+  return el;
+}
+
+/** Draw a single colored pin rect + truncated label into `svg`. */
+function drawPin(svg, x, y, pinW, pinH, color, label) {
+  svg.appendChild(svgEl("rect", {
+    x, y, width: pinW, height: pinH, rx: 8, ry: 8,
+    fill: color, stroke: "rgba(0,0,0,0.20)", "stroke-width": 1,
+  }));
+
+  const lbl     = (label || "").trim();
+  const display = lbl.length > 5 ? lbl.slice(0, 4) + "\u2026" : lbl;
+  const fs      = lbl.length > 4 ? 9 : 11;
+
+  const t = svgEl("text", {
+    x: x + pinW / 2, y: y + pinH / 2,
+    "text-anchor": "middle", "dominant-baseline": "central",
+    "font-size": fs, "font-weight": "600",
+    "font-family": "system-ui, sans-serif",
+    fill: getContrastColor(color),
+  });
+  t.textContent = display;
+  svg.appendChild(t);
+}
+
+/** Draw a small pin-number label (above or below a pin). */
+function drawPinNumber(svg, num, cx, cy) {
+  const t = svgEl("text", {
+    x: cx, y: cy,
+    "text-anchor": "middle", "dominant-baseline": "central",
+    "font-size": 10, "font-weight": "500",
+    "font-family": "system-ui, sans-serif",
+    fill: "#9ca3af",
+  });
+  t.textContent = num;
+  svg.appendChild(t);
+}
+
+/* -- Layout: Single Row --------------------------------------------- */
+
+function renderRow(svg, colors, labels, cfg) {
+  const { pinW, pinH, gap, bodyColor, showNumbers, title } = cfg;
+  const n     = colors.length;
+  const PAD_X = 20;
+  const PAD_Y = 12;
+  const TTL_H = title ? 28 : 0;
+  const NUM_H = showNumbers ? 28 : 0;
+
+  const svgW = PAD_X * 2 + n * pinW + (n - 1) * gap;
+  const svgH = PAD_Y + TTL_H + NUM_H + pinH + PAD_Y;
+
+  svg.setAttribute("width",   svgW);
+  svg.setAttribute("height",  svgH);
+  svg.setAttribute("viewBox", `0 0 ${svgW} ${svgH}`);
+
+  // Optional title above connector
+  if (title) {
+    const t = svgEl("text", {
+      x: svgW / 2, y: PAD_Y + TTL_H / 2,
+      "text-anchor": "middle", "dominant-baseline": "central",
+      "font-size": 13, "font-weight": "700",
+      "font-family": "system-ui, sans-serif",
+      fill: "#374151",
+    });
+    t.textContent = title;
+    svg.appendChild(t);
+  }
+
+  const pinY = PAD_Y + TTL_H + NUM_H;
+
+  // Connector body background
+  svg.appendChild(svgEl("rect", {
+    x: PAD_X - 6, y: pinY - 4,
+    width: n * pinW + (n - 1) * gap + 12, height: pinH + 8,
+    rx: 10, fill: bodyColor, stroke: "#d1d5db", "stroke-width": 1,
+  }));
+
+  colors.forEach((color, i) => {
+    const x = PAD_X + i * (pinW + gap);
+    if (showNumbers) drawPinNumber(svg, i + 1, x + pinW / 2, PAD_Y + TTL_H + NUM_H / 2);
+    drawPin(svg, x, pinY, pinW, pinH, color, labels[i]);
+  });
+}
+
+/* -- Layout: DIP / IC ----------------------------------------------- */
+
+function renderDIP(svg, colors, labels, cfg) {
+  const n = colors.length;
+
+  // DIP needs at least 2 pins; fall back to row for 1
+  if (n < 2) {
+    renderRow(svg, colors, labels, cfg);
+    return;
+  }
+
+  const { pinW, pinH, gap, bodyColor, showNumbers, title } = cfg;
+  const topCount = Math.ceil(n / 2);
+  const botCount = Math.floor(n / 2);
+  const PAD_X    = 20;
+  const PAD_Y    = 12;
+  const NUM_H    = showNumbers ? 28 : 0;
+  const BODY_H   = 44;
+
+  const svgW = PAD_X * 2 + topCount * pinW + (topCount - 1) * gap;
+  const svgH = PAD_Y + NUM_H + pinH + BODY_H + pinH + NUM_H + PAD_Y;
+
+  svg.setAttribute("width",   svgW);
+  svg.setAttribute("height",  svgH);
+  svg.setAttribute("viewBox", `0 0 ${svgW} ${svgH}`);
+
+  const topPinY = PAD_Y + NUM_H;
+  const bodyY   = topPinY + pinH;
+  const botPinY = bodyY + BODY_H;
+
+  // Chip body
+  svg.appendChild(svgEl("rect", {
+    x: PAD_X - 6, y: bodyY,
+    width: topCount * pinW + (topCount - 1) * gap + 12, height: BODY_H,
+    rx: 5, fill: bodyColor, stroke: "#d1d5db", "stroke-width": 1.5,
+  }));
+
+  // Orientation notch (semicircle on top edge, indicating pin 1 side)
+  svg.appendChild(svgEl("path", {
+    d: `M ${PAD_X + topCount * pinW / 2 + (topCount - 1) * gap / 2 - 10} ${bodyY} a 10 10 0 0 0 20 0`,
+    fill: "#d1d5db",
+  }));
+
+  // Title inside chip body
+  if (title) {
+    const t = svgEl("text", {
+      x: svgW / 2, y: bodyY + BODY_H / 2,
+      "text-anchor": "middle", "dominant-baseline": "central",
+      "font-size": 12, "font-weight": "700",
+      "font-family": "system-ui, sans-serif",
+      fill: "#374151",
+    });
+    t.textContent = title;
+    svg.appendChild(t);
+  }
+
+  // Top row: pins 1..topCount (left to right)
+  for (let j = 0; j < topCount; j++) {
+    const idx = j;
+    const x   = PAD_X + j * (pinW + gap);
+    if (showNumbers) drawPinNumber(svg, idx + 1, x + pinW / 2, PAD_Y + NUM_H / 2);
+    drawPin(svg, x, topPinY, pinW, pinH, colors[idx], labels[idx]);
+  }
+
+  // Bottom row: pins n..topCount+1 (left to right → counterclockwise DIP)
+  for (let j = 0; j < botCount; j++) {
+    const idx = n - 1 - j;
+    const x   = PAD_X + j * (pinW + gap);
+    drawPin(svg, x, botPinY, pinW, pinH, colors[idx], labels[idx]);
+    if (showNumbers) drawPinNumber(svg, idx + 1, x + pinW / 2, botPinY + pinH + NUM_H / 2);
+  }
+}
+
+/* -- Dispatcher ----------------------------------------------------- */
+
+function renderPinDiagram(colors, labels, cfg) {
   const svg = document.getElementById("my-svg");
   svg.innerHTML = "";
 
-  const size = 50;
-  const paddingX = 24;
-  const startY = 60;
-
-  colors.forEach((color, index) => {
-    const label = labels[index] || "";
-    const x = paddingX + index * (size + 8);
-
-    const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-    rect.setAttribute("x", x);
-    rect.setAttribute("y", startY);
-    rect.setAttribute("width", size);
-    rect.setAttribute("height", size);
-    rect.setAttribute("rx", 7);
-    rect.setAttribute("ry", 7);
-    rect.setAttribute("stroke", "#111827");
-    rect.setAttribute("stroke-width", 1);
-    rect.setAttribute("fill", color);
-
-    const text = document.createElementNS(
-      "http://www.w3.org/2000/svg",
-      "text"
-    );
-    text.setAttribute("x", x + size / 2);
-    text.setAttribute("y", startY + size / 2);
-    text.setAttribute("text-anchor", "middle");
-    text.setAttribute("dominant-baseline", "central");
-    text.setAttribute("font-size", 12);
-    text.setAttribute("font-family", "system-ui, sans-serif");
-    text.setAttribute("fill", getContrastColor(color));
-    text.textContent = label;
-
-    svg.appendChild(rect);
-    svg.appendChild(text);
-  });
+  if (cfg.layout === "dip") {
+    renderDIP(svg, colors, labels, cfg);
+  } else {
+    renderRow(svg, colors, labels, cfg);
+  }
 }
 
+/* ------------------------------------------------------------------ */
+/* Pin table (left panel)                                              */
+/* ------------------------------------------------------------------ */
+
 function renderPinTable(colors, labels) {
-  const tableBody = document.getElementById("pin-table-body");
-  tableBody.innerHTML = "";
+  const tbody = document.getElementById("pin-table-body");
+  tbody.innerHTML = "";
 
-  colors.forEach((color, index) => {
-    const label = labels[index] || "";
+  colors.forEach((color, i) => {
+    const label = labels[i] || "";
+    const row   = document.createElement("tr");
 
-    const row = document.createElement("tr");
+    const pinCell     = document.createElement("td");
+    pinCell.textContent = i + 1;
 
-    const pinCell = document.createElement("td");
-    pinCell.textContent = index + 1;
-
-    const labelCell = document.createElement("td");
+    const labelCell   = document.createElement("td");
     labelCell.textContent = label;
 
-    const colorCell = document.createElement("td");
+    const colorCell   = document.createElement("td");
     colorCell.textContent = color;
 
     const previewCell = document.createElement("td");
-    previewCell.style.backgroundColor = color;
-    previewCell.style.width = "40px";
+    previewCell.style.cssText = `background-color:${color};width:40px;border-radius:4px;`;
 
-    row.appendChild(pinCell);
-    row.appendChild(labelCell);
-    row.appendChild(colorCell);
-    row.appendChild(previewCell);
-
-    tableBody.appendChild(row);
+    row.append(pinCell, labelCell, colorCell, previewCell);
+    tbody.appendChild(row);
   });
 }
 
 /* ------------------------------------------------------------------ */
-/* Helpers                                                            */
+/* Helpers                                                              */
 /* ------------------------------------------------------------------ */
 
 function getContrastColor(bgColor) {
-  // expects #rrggbb
-  if (typeof bgColor !== "string" || bgColor[0] !== "#" || bgColor.length < 7) {
-    return "black";
-  }
+  if (typeof bgColor !== "string" || bgColor[0] !== "#" || bgColor.length < 7) return "black";
+  const r = parseInt(bgColor.slice(1, 3), 16);
+  const g = parseInt(bgColor.slice(3, 5), 16);
+  const b = parseInt(bgColor.slice(5, 7), 16);
+  return (r * 299 + g * 587 + b * 114) / 1000 > 140 ? "black" : "white";
+}
 
-  const r = parseInt(bgColor.substr(1, 2), 16);
-  const g = parseInt(bgColor.substr(3, 2), 16);
-  const b = parseInt(bgColor.substr(5, 2), 16);
+function showToast(msg, type = "error") {
+  const container = document.getElementById("toast-container");
+  const toast     = document.createElement("div");
+  toast.className = `toast toast--${type}`;
+  toast.textContent = msg;
+  container.appendChild(toast);
 
-  const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-  return brightness > 140 ? "black" : "white";
+  requestAnimationFrame(() => toast.classList.add("toast--visible"));
+  setTimeout(() => {
+    toast.classList.remove("toast--visible");
+    toast.addEventListener("transitionend", () => toast.remove(), { once: true });
+  }, 3000);
 }
 
 /* ------------------------------------------------------------------ */
-/* Row management                                                     */
+/* Row management                                                       */
 /* ------------------------------------------------------------------ */
 
 function addRow() {
-  const tableBody = document
-    .getElementById("myTable")
-    .getElementsByTagName("tbody")[0];
-
-  const rowIndex = tableBody.rows.length;
-  const row = document.createElement("tr");
+  const tbody    = document.getElementById("myTable").getElementsByTagName("tbody")[0];
+  const rowIndex = tbody.rows.length;
+  const row      = document.createElement("tr");
 
   row.innerHTML = `
     <td>${rowIndex + 1}</td>
-    <td><input type="color" value="#cccccc" aria-label="Pin color" /></td>
-    <td><input type="text" placeholder="Pin label" aria-label="Pin label" /></td>
-    <td style="width: 1%;">
-      <button type="button" class="button--icon button--danger" aria-label="Remove pin">
-        ✕
-      </button>
+    <td><input type="color" value="#6366f1" aria-label="Pin color" /></td>
+    <td><input type="text" placeholder="e.g. VCC" aria-label="Pin label" /></td>
+    <td style="width:1%;">
+      <button type="button" class="button--icon button--danger" aria-label="Remove pin">&#x2715;</button>
     </td>
   `;
 
-  const removeButton = row.querySelector("button");
-  removeButton.addEventListener("click", () => {
+  row.querySelector("button").addEventListener("click", () => {
     row.remove();
-    renumberRows(tableBody);
+    renumberRows(tbody);
+    updatePinCount();
   });
 
-  tableBody.appendChild(row);
+  tbody.appendChild(row);
+  updatePinCount();
 }
 
 function renumberRows(tbody) {
-  Array.from(tbody.rows).forEach((row, idx) => {
-    row.cells[0].textContent = idx + 1;
-  });
+  Array.from(tbody.rows).forEach((row, idx) => { row.cells[0].textContent = idx + 1; });
+}
+
+function updatePinCount() {
+  const tbody = document.getElementById("myTable").getElementsByTagName("tbody")[0];
+  const count = tbody.rows.length;
+  const el    = document.getElementById("pin-count");
+  if (el) el.textContent = `${count} pin${count !== 1 ? "s" : ""}`;
 }
 
 /* ------------------------------------------------------------------ */
-/* Export                                                             */
+/* Export                                                               */
 /* ------------------------------------------------------------------ */
 
 function savePNG() {
   const exportArea = document.getElementById("to_export");
-
   if (!exportArea) return;
 
-  // Ensure there is something to export
-  const hasPins = document.getElementById("pin-table-body").rows.length > 0;
-  if (!hasPins) {
-    alert("Generate the pinout before exporting.");
+  if (document.getElementById("pin-table-body").rows.length === 0) {
+    showToast("Generate the pinout before exporting.");
     return;
   }
 
-  html2canvas(exportArea, {
-    backgroundColor: null
-  }).then((canvas) => {
-    downloadCanvasAsImage(canvas);
-  });
+  const bg = document.body.getAttribute("data-theme") === "dark" ? "#111827" : "#ffffff";
+
+  domtoimage
+    .toPng(exportArea, { bgcolor: bg, scale: 2 })
+    .then((dataUrl) => {
+      const link     = document.createElement("a");
+      link.download  = generateFilename("png");
+      link.href      = dataUrl;
+      link.click();
+    })
+    .catch(() => showToast("PNG export failed. Try again."));
 }
 
-function downloadCanvasAsImage(canvas) {
-  const link = document.createElement("a");
-  link.download = generateFilename();
-  canvas.toBlob((blob) => {
-    if (!blob) return;
-    link.href = URL.createObjectURL(blob);
-    link.click();
-    URL.revokeObjectURL(link.href);
-  });
+function saveSVG() {
+  const svg = document.getElementById("my-svg");
+  if (!svg || !svg.getAttribute("width")) {
+    showToast("Generate the pinout before exporting.");
+    return;
+  }
+
+  const svgStr = '<?xml version="1.0" encoding="utf-8"?>\n' +
+    new XMLSerializer().serializeToString(svg);
+  const blob   = new Blob([svgStr], { type: "image/svg+xml" });
+  const url    = URL.createObjectURL(blob);
+  const link   = document.createElement("a");
+  link.download = generateFilename("svg");
+  link.href     = url;
+  link.click();
+  URL.revokeObjectURL(url);
 }
 
-function generateFilename() {
+function generateFilename(ext = "png") {
   const now = new Date();
-
   const pad = (n) => String(n).padStart(2, "0");
-
-  const yyyy = now.getFullYear();
-  const mm = pad(now.getMonth() + 1);
-  const dd = pad(now.getDate());
-  const hh = pad(now.getHours());
-  const min = pad(now.getMinutes());
-
-  return `pinout_${yyyy}${mm}${dd}_${hh}${min}.png`;
+  return `pinout_${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}.${ext}`;
 }
