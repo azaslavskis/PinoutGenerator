@@ -9,28 +9,41 @@
     <script src="main.js" defer></script>
 </head>
 <body>
+
     <header class="app-header">
-        <div class="app-header__content">
-            <h1 class="app-title">Pinout Generator</h1>
-            <p class="app-subtitle">Design, preview, and export pinout diagrams.</p>
+        <div class="app-header__brand">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <rect x="1" y="5" width="18" height="10" rx="3" stroke="currentColor" stroke-width="1.5" fill="currentColor" fill-opacity="0.08"/>
+                <rect x="4"  y="1" width="3" height="6" rx="1.5" fill="currentColor"/>
+                <rect x="8.5" y="1" width="3" height="6" rx="1.5" fill="currentColor"/>
+                <rect x="13" y="1" width="3" height="6" rx="1.5" fill="currentColor"/>
+                <rect x="4"  y="13" width="3" height="6" rx="1.5" fill="currentColor"/>
+                <rect x="8.5" y="13" width="3" height="6" rx="1.5" fill="currentColor"/>
+                <rect x="13" y="13" width="3" height="6" rx="1.5" fill="currentColor"/>
+            </svg>
+            <span class="app-title">Pinout Generator</span>
         </div>
-        <div class="theme-toggle">
-            <span>Light</span>
-            <label class="switch">
-                <input type="checkbox" id="theme-toggle-checkbox" />
-                <span class="slider round"></span>
-            </label>
-            <span>Dark</span>
+        <div class="app-header__right">
+            <span class="app-subtitle">Design &amp; export connector diagrams</span>
+            <div class="theme-toggle">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm6.364 2.05a1 1 0 010 1.414l-.707.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM21 11a1 1 0 110 2h-1a1 1 0 110-2h1zM4.929 4.05a1 1 0 011.414 0l.707.707A1 1 0 115.636 6.17l-.707-.707a1 1 0 010-1.414zM4 12a1 1 0 110-2H3a1 1 0 110 2h1zm2.343 5.657a1 1 0 010-1.414l.707-.707a1 1 0 011.414 1.414l-.707.707a1 1 0 01-1.414 0zm11.314 0a1 1 0 01-1.414 0l-.707-.707a1 1 0 011.414-1.414l.707.707a1 1 0 010 1.414zM12 18a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zm0-13a7 7 0 100 14A7 7 0 0012 5z"/></svg>
+                <label class="switch">
+                    <input type="checkbox" id="theme-toggle-checkbox" />
+                    <span class="slider"></span>
+                </label>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z"/></svg>
+            </div>
         </div>
     </header>
 
-    <main class="container">
+    <div class="layout">
 
-        <!-- Left: Exportable area (table + diagram) -->
-        <section class="panel panel--exportable">
-            <div class="panel__inner exportable" id="to_export">
-                <h2 class="panel-title">Pin Table</h2>
-                <div class="table-wrapper">
+        <!-- ── Left: workspace ── -->
+        <main class="workspace" id="to_export">
+
+            <section class="card">
+                <h2 class="section-title">Pin Table</h2>
+                <div class="table-scroll">
                     <table>
                         <thead>
                             <tr>
@@ -40,32 +53,46 @@
                                 <th>Preview</th>
                             </tr>
                         </thead>
-                        <tbody id="pin-table-body"></tbody>
+                        <tbody id="pin-table-body">
+                            <tr class="table-empty-row" id="table-empty-row">
+                                <td colspan="4" class="table-empty-cell">No pins generated yet.</td>
+                            </tr>
+                        </tbody>
                     </table>
                 </div>
+            </section>
 
-                <h2 class="panel-title panel-title--compact">Pinout Diagram</h2>
-                <div class="diagram-wrapper">
-                    <p class="diagram-empty" id="diagram-empty">
-                        Add pins and click <strong>Generate</strong> to preview.
-                    </p>
+            <section class="card">
+                <h2 class="section-title">Pinout Diagram</h2>
+                <div class="diagram-wrapper" id="diagram-wrapper">
+                    <div class="diagram-empty" id="diagram-empty">
+                        <svg width="56" height="40" viewBox="0 0 56 40" fill="none" aria-hidden="true" class="diagram-empty__icon">
+                            <rect x="2" y="10" width="52" height="20" rx="5" stroke="currentColor" stroke-width="1.5" fill="currentColor" fill-opacity="0.06"/>
+                            <rect x="6"  y="2" width="9" height="13" rx="3" stroke="currentColor" stroke-width="1.5" fill="currentColor" fill-opacity="0.08"/>
+                            <rect x="21" y="2" width="9" height="13" rx="3" stroke="currentColor" stroke-width="1.5" fill="currentColor" fill-opacity="0.08"/>
+                            <rect x="36" y="2" width="9" height="13" rx="3" stroke="currentColor" stroke-width="1.5" fill="currentColor" fill-opacity="0.08"/>
+                            <rect x="6"  y="25" width="9" height="13" rx="3" stroke="currentColor" stroke-width="1.5" fill="currentColor" fill-opacity="0.08"/>
+                            <rect x="21" y="25" width="9" height="13" rx="3" stroke="currentColor" stroke-width="1.5" fill="currentColor" fill-opacity="0.08"/>
+                            <rect x="36" y="25" width="9" height="13" rx="3" stroke="currentColor" stroke-width="1.5" fill="currentColor" fill-opacity="0.08"/>
+                        </svg>
+                        <p>Add pins and click <strong>Generate</strong> to preview.</p>
+                    </div>
                     <svg id="my-svg" hidden aria-label="Pinout diagram"></svg>
                 </div>
-            </div>
-        </section>
+            </section>
 
-        <!-- Right: Pin management -->
-        <section class="panel panel--user">
-            <div class="panel__inner">
+        </main>
 
-                <!-- Title + pin count -->
-                <div class="panel-title-row">
-                    <h2 class="panel-title">Manage Pins</h2>
+        <!-- ── Right: sidebar ── -->
+        <aside class="sidebar">
+
+            <div class="sidebar-section">
+                <div class="sidebar-title-row">
+                    <h2 class="sidebar-title">Manage Pins</h2>
                     <span class="pin-badge" id="pin-count">0 pins</span>
                 </div>
 
-                <!-- Pin input table -->
-                <div class="table-wrapper table-wrapper--input">
+                <div class="table-scroll table-scroll--input">
                     <table id="myTable">
                         <thead>
                             <tr>
@@ -78,27 +105,23 @@
                         <tbody></tbody>
                     </table>
                 </div>
+            </div>
 
-                <!-- Add + Generate -->
-                <div class="buttons">
+            <div class="sidebar-section sidebar-section--actions">
+                <div class="btn-row">
                     <div class="add-group">
-                        <button id="add-pin-btn" type="button" class="button--ghost">+ Add</button>
-                        <input
-                            type="number"
-                            id="add-count"
-                            min="1"
-                            max="100"
-                            value="1"
-                            class="add-count-input"
-                            aria-label="Number of pins to add"
-                        />
+                        <button id="add-pin-btn" type="button" class="btn btn--ghost">+ Add</button>
+                        <input type="number" id="add-count" min="1" max="100" value="1"
+                               class="add-count-input" aria-label="Number of pins to add" />
                     </div>
-                    <button id="generate-btn" type="button">Generate</button>
+                    <button id="generate-btn" type="button" class="btn btn--primary">Generate</button>
                 </div>
+            </div>
 
-                <!-- Diagram settings (collapsible) -->
+            <div class="sidebar-section">
                 <details class="settings" id="diagram-settings">
-                    <summary>
+                    <summary class="settings__summary">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 15.5A3.5 3.5 0 018.5 12 3.5 3.5 0 0112 8.5a3.5 3.5 0 013.5 3.5 3.5 3.5 0 01-3.5 3.5m7.43-2.92c.04-.34.07-.68.07-1.08s-.03-.73-.07-1.08l2.32-1.84c.21-.16.27-.47.13-.71l-2.2-3.82c-.13-.24-.42-.32-.66-.24l-2.73 1.1c-.57-.44-1.18-.8-1.84-1.08l-.42-2.9C14.37 2.12 14.12 2 13.84 2h-4.4c-.28 0-.53.12-.57.34l-.42 2.9c-.66.28-1.27.64-1.84 1.08l-2.73-1.1c-.24-.09-.53 0-.66.24L1.02 9.28c-.14.24-.08.55.13.71l2.32 1.84c-.04.35-.07.69-.07 1.08s.03.73.07 1.08L1.15 15.83c-.21.16-.27.47-.13.71l2.2 3.82c.13.24.42.32.66.24l2.73-1.1c.57.44 1.18.8 1.84 1.08l.42 2.9c.04.22.29.34.57.34h4.4c.28 0 .53-.12.57-.34l.42-2.9c.66-.28 1.27-.64 1.84-1.08l2.73 1.1c.24.09.53 0 .66-.24l2.2-3.82c.14-.24.08-.55-.13-.71l-2.32-1.84z"/></svg>
                         Diagram Settings
                         <span class="settings__arrow">&#9660;</span>
                     </summary>
@@ -114,17 +137,17 @@
                         </select>
 
                         <label class="settings-label" for="cfg-pin-w">
-                            Pin width&nbsp;(<span id="cfg-pin-w-val">58</span>px)
+                            Width&nbsp;<span id="cfg-pin-w-val">58</span>px
                         </label>
                         <input type="range" id="cfg-pin-w" min="36" max="90" value="58" />
 
                         <label class="settings-label" for="cfg-pin-h">
-                            Pin height&nbsp;(<span id="cfg-pin-h-val">64</span>px)
+                            Height&nbsp;<span id="cfg-pin-h-val">64</span>px
                         </label>
                         <input type="range" id="cfg-pin-h" min="36" max="100" value="64" />
 
                         <label class="settings-label" for="cfg-gap">
-                            Gap&nbsp;(<span id="cfg-gap-val">10</span>px)
+                            Gap&nbsp;<span id="cfg-gap-val">10</span>px
                         </label>
                         <input type="range" id="cfg-gap" min="2" max="32" value="10" />
 
@@ -136,22 +159,21 @@
 
                     </div>
                 </details>
-
-                <!-- Export -->
-                <div class="buttons">
-                    <button id="save-png-btn" type="button" class="button--outline">Save PNG</button>
-                    <button id="save-svg-btn" type="button" class="button--outline">Save SVG</button>
-                </div>
-
             </div>
-        </section>
 
-    </main>
+            <div class="sidebar-section sidebar-section--export">
+                <p class="sidebar-label">Export</p>
+                <div class="btn-row">
+                    <button id="save-png-btn" type="button" class="btn btn--outline">Save PNG</button>
+                    <button id="save-svg-btn" type="button" class="btn btn--outline">Save SVG</button>
+                </div>
+            </div>
 
-    <footer class="app-footer">
-        <span>Pinout Generator &middot; 2025</span>
-    </footer>
+        </aside>
+
+    </div><!-- /.layout -->
 
     <div class="toast-container" id="toast-container" aria-live="polite"></div>
+
 </body>
 </html>
